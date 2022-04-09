@@ -2,28 +2,27 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
-public class Tetris extends JFrame implements KeyListener, ActionListener{
+public class Tetris extends JFrame implements KeyListener{
     private Thread thread;
     private boolean isLeft = false;
     private boolean isRight = false;
     private boolean isUp = false;
     private boolean isDown = false;
-    private boolean queryLeft = false;
-    private boolean queryRight = false;
-    private boolean queryUp = false;
-    private boolean queryDown = false;
-
+    public int[][][] game_field = new int[20][10][2];
+    public int[][] falling = new int[4][3];
+    public int[][][] tetraminos = new int[7][4][3];
 
     public Tetris(int width, int height) {
         this.setSize(width, height);
         this.addKeyListener(this);
         thread = new MoveThread(this);
         thread.start();
-        
-        Timer timer = new Timer(50, this);
-        timer.start();
+
+        timer_move.scheduleAtFixedRate(task_move, 0, 50);
     }
 
     public static void main(String[] args) {
@@ -33,14 +32,25 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
         win.setVisible(true);
     }
 
-    public int[][][] game_field = new int[20][10][2];
-    public int[][] falling = new int[4][3];
 
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        move();
-    } 
+    public Timer timer_move = new Timer();
+    public TimerTask task_move = new TimerTask(){
+      public void run() {
+        if (isLeft) {
+            game(1);
+        }
+        if (isRight) {
+            game(2);
+        }
+        if (isUp) {
+
+        }
+        if (isDown) {
+
+        };
+      }
+    };
 
     public void game(int who) {
         for (int i = 0; i < 20; i++) {
@@ -63,13 +73,11 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
                             for (int w = 0; w < 2; w++) {
                                 game_field[k][z][w] = game_field[k-1][z][w];
                             }
-                        } 
-                        //game_field[k] = game_field[k-1];
+                        }
                     }
                 }
             }
         }
-        repaint();
 
         boolean no_falling = true;
 
@@ -79,7 +87,6 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
             }
         }
 
-        repaint();
         int k = 0;
         for (int i = 0; i < 20 && k < 4; i++) {
             for (int j = 0; j < 10 && k < 4; j++) {
@@ -92,7 +99,6 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
                 }
             }
         }
-        repaint();
         if (no_falling) {
             Random random = new Random();
             int i = random.nextInt(7) + 1;
@@ -191,17 +197,14 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
                     if (el1 && el2) {
                         game_field[falling[i][0]+1][falling[i][1]][0] = 1;
                         game_field[falling[i][0]+1][falling[i][1]][1] = falling[i][2];
-                    } else if (el2) {
-                        game_field[falling[i][0]][falling[i][1]][0] = 1;
-                        game_field[falling[i][0]][falling[i][1]][1] = 0;
                     } else {
                         game_field[falling[i][0]][falling[i][1]][0] = 1;
                         game_field[falling[i][0]][falling[i][1]][1] = 0;
-                    }                    
+                    }               
 
                 }
             } else if (who == 1) {
-                if (falling[0][1] - 1 >= 0 && falling[1][1] - 1 >= 0 && falling[2][1] - 0 >= 1 && falling[3][1] - 1 >= 0) {
+                if (falling[0][1] - 1 >= 0 && falling[1][1] - 1 >= 0 && falling[2][1] - 0 >= 0 && falling[3][1] - 1 >= 0 && (game_field[falling[0][0]][falling[0][1] - 1][0] == 0 || game_field[falling[0][0]][falling[0][1] - 1][1] == falling[0][2]) && (game_field[falling[1][0]][falling[1][1] - 1][0] == 0 || game_field[falling[1][0]][falling[1][1] - 1][1] == falling[1][2]) && (game_field[falling[2][0]][falling[2][1] - 1][0] == 0 || game_field[falling[2][0]][falling[2][1] - 1][1] == falling[2][2]) && (game_field[falling[3][0]][falling[3][1] - 1][0] == 0 || game_field[falling[3][0]][falling[3][1] - 1][1] == falling[3][2])) {
                     for (int i = 0; i < 4; i++) {
                         game_field[falling[i][0]][falling[i][1]][0] = 0;
                         game_field[falling[i][0]][falling[i][1]][1] = 0;
@@ -212,7 +215,7 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
                     }
                 }
             } else if (who == 2) {
-                if (falling[0][1] + 1 < 10 && falling[1][1] + 1 < 10 && falling[2][1] + 1 < 10 && falling[3][1] + 1 < 10) {
+                if (falling[0][1] + 1 < 10 && falling[1][1] + 1 < 10 && falling[2][1] + 1 < 10 && falling[3][1] + 1 < 10 && (game_field[falling[0][0]][falling[0][1] + 1][0] == 0 || game_field[falling[0][0]][falling[0][1] + 1][1] == falling[0][2]) && (game_field[falling[1][0]][falling[1][1] + 1][0] == 0 || game_field[falling[1][0]][falling[1][1] + 1][1] == falling[1][2]) && (game_field[falling[2][0]][falling[2][1] + 1][0] == 0 || game_field[falling[2][0]][falling[2][1] + 1][1] == falling[2][2]) && (game_field[falling[3][0]][falling[3][1] + 1][0] == 0 || game_field[falling[3][0]][falling[3][1] + 1][1] == falling[3][2])) {
                     for (int i = 0; i < 4; i++) {
                         game_field[falling[i][0]][falling[i][1]][0] = 0;
                         game_field[falling[i][0]][falling[i][1]][1] = 0;
@@ -289,20 +292,6 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
     @Override
     public void keyTyped(KeyEvent arg0) {}
      
-    public void move() {
-        if (isLeft) {
-            queryLeft = true;
-        }
-        if (isRight) {
-            queryRight = true;
-        }
-        if (isUp) {
-            queryUp = true;
-        }
-        if (isDown) {
-            queryDown = true;
-        };
-    }
 
     private class MoveThread extends Thread{
         Tetris tetris;
@@ -314,29 +303,11 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
          
         public void run(){
             while(true) {
+                
                 game(0);
-                try {
-                    Thread.sleep(3);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (queryLeft) {
-                    game(1);
-                    queryLeft = false;
-                }
-                try {
-                    Thread.sleep(3);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (queryRight) {
-                    game(2);
-                    queryRight = false;
-                }
-                
                 
                 try {
-                    Thread.sleep(300);
+                    Thread.sleep(400);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
