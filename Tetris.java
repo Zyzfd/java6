@@ -43,6 +43,34 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
     } 
 
     public void game(int who) {
+        for (int i = 0; i < 20; i++) {
+            int sum = 0;
+            for (int j = 0; j < 10; j++) {
+                if (game_field[i][j][1] == 0) {
+                    sum += game_field[i][j][0];
+                }
+            }
+            if (sum == 10) {
+                for (int k = i; k >= 0; k--) {
+                    if (k == 0) {
+                        for (int z = 0; z < 10; z++) {
+                            for (int w = 0; w < 2; w++) {
+                                game_field[k][z][w] = 0;
+                            }
+                        }
+                    } else {
+                        for (int z = 0; z < 10; z++) {
+                            for (int w = 0; w < 2; w++) {
+                                game_field[k][z][w] = game_field[k-1][z][w];
+                            }
+                        } 
+                        //game_field[k] = game_field[k-1];
+                    }
+                }
+            }
+        }
+        repaint();
+
         boolean no_falling = true;
 
         for (int i = 0; i < 4; i++) {
@@ -51,6 +79,7 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
             }
         }
 
+        repaint();
         int k = 0;
         for (int i = 0; i < 20 && k < 4; i++) {
             for (int j = 0; j < 10 && k < 4; j++) {
@@ -63,6 +92,7 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
                 }
             }
         }
+        repaint();
         if (no_falling) {
             Random random = new Random();
             int i = random.nextInt(7) + 1;
@@ -205,7 +235,7 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
     @Override
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D)g;
-        int y = 10;
+        int y = 80;
         for (int i = 0; i < 20; i++) {
             int x = 275;
             for (int j = 0; j < 10; j++) {
@@ -303,6 +333,8 @@ public class Tetris extends JFrame implements KeyListener, ActionListener{
                     game(2);
                     queryRight = false;
                 }
+                
+                
                 try {
                     Thread.sleep(300);
                 } catch (InterruptedException e) {
