@@ -17,6 +17,7 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean queryUp = false;
     private boolean queryDown = false;
     private boolean exit = false;
+    public int score = 0;
     public int[][][] game_field = new int[20][10][2];
     public int[][] falling = new int[4][3];
     public int figure_state = 0;
@@ -69,7 +70,6 @@ public class Tetris extends JFrame implements KeyListener{
         thread = new MoveThread(this);
         thread.start();
 
-        
         timer_move.scheduleAtFixedRate(task_move, 0, 100);
         timer_rotate.scheduleAtFixedRate(task_rotate, 0, 100);
         timer_main.scheduleAtFixedRate(task_main, 0, 10);
@@ -155,6 +155,7 @@ public class Tetris extends JFrame implements KeyListener{
                 }
             }
             if (sum == 10) {
+                score++;
                 for (int k = i; k >= 0; k--) {
                     if (k == 0) {
                         for (int z = 0; z < 10; z++) {
@@ -363,8 +364,6 @@ public class Tetris extends JFrame implements KeyListener{
                     }
                 }
 
-                
-
             } else if (who == 4) {
                 for (int i = 0; i < 4; i++) {
                     game_field[falling[i][0]][falling[i][1]][0] = 0;
@@ -423,6 +422,11 @@ public class Tetris extends JFrame implements KeyListener{
             }
             y += 42;
         }
+        String str = String.valueOf(score);
+
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Serif", Font.PLAIN, 36));
+        g.drawString("OK",20,20); 
     }
      
     //Listener
