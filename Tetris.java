@@ -12,9 +12,55 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean isRight = false;
     private boolean isUp = false;
     private boolean isDown = false;
+    private boolean queryLeft = false;
+    private boolean queryRight = false;
+    private boolean queryUp = false;
+    private boolean queryDown = false;
     public int[][][] game_field = new int[20][10][2];
     public int[][] falling = new int[4][3];
-    public int[][][] tetraminos = new int[7][4][3];
+    public int figure_state = 0;
+    public int figure;
+    public int[][][][] tetraminos = {
+        {{{0,0}, {0,0}, {0,0}, {0,0}},
+         {{0,0}, {0,0}, {0,0}, {0,0}},
+         {{0,0}, {0,0}, {0,0}, {0,0}},
+         {{0,0}, {0,0}, {0,0}, {0,0}}},
+
+        {{{0,0}, {0,0}, {0,0}, {0,0}},
+         {{0,0}, {0,0}, {0,0}, {0,0}},
+         {{0,0}, {0,0}, {0,0}, {0,0}},
+         {{0,0}, {0,0}, {0,0}, {0,0}}},
+
+        {{{0,-1}, {0,-1}, {-1,1}, {-1,1}},
+         {{0,1}, {-1,2}, {0,0}, {1,-1}},
+         {{1,-1}, {1,-1}, {0,1}, {0,1}},
+         {{-1,1}, {0,0}, {1,-2}, {0,-1}}},
+
+        {{{0,2}, {1,-1}, {0,0}, {-1,1}},
+         {{0,-1}, {0,1}, {1,0}, {1,0}},
+         {{1,-1}, {0,0}, {-1,1}, {0,-2}},
+         {{-1,0}, {-1,0}, {0,-1}, {0,1}}},
+
+        {{{1,-1}, {0,0}, {-1,1}, {-2,2}},
+         {{-1,1}, {0,0}, {1,-1}, {2,-2}},
+         {{1,-1}, {0,0}, {-1,1}, {-2,2}},
+         {{-1,1}, {0,0}, {1,-1}, {2,-2}}},
+
+        {{{0,0}, {0,0}, {0,0}, {-1,1}},
+         {{0,0}, {0,1}, {0,1}, {1,-1}},
+         {{1,-1}, {0,0}, {0,0}, {0,0}},
+         {{-1,1}, {0,-1}, {0,-1}, {0,0}}},
+
+        {{{1,1}, {0,2}, {1,-1}, {0,0}},
+         {{-1,-1}, {0,-2}, {-1,1}, {0,0}},
+         {{1,1}, {0,2}, {1,-1}, {0,0}},
+         {{-1,-1}, {0,-2}, {-1,1}, {0,0}}},
+
+        {{{1,-1}, {0,1}, {1,0}, {0,2}},
+         {{-1,1}, {0,-1}, {-1,0}, {0,-2}},
+         {{1,-1}, {0,1}, {1,0}, {0,2}},
+         {{-1,1}, {0,-1}, {-1,0}, {0,-2}}}
+    };
 
     public Tetris(int width, int height) {
         this.setSize(width, height);
@@ -22,7 +68,10 @@ public class Tetris extends JFrame implements KeyListener{
         thread = new MoveThread(this);
         thread.start();
 
-        timer_move.scheduleAtFixedRate(task_move, 0, 50);
+        
+        timer_move.scheduleAtFixedRate(task_move, 0, 100);
+        timer_rotate.scheduleAtFixedRate(task_rotate, 0, 100);
+        timer_main.scheduleAtFixedRate(task_main, 0, 10);
     }
 
     public static void main(String[] args) {
@@ -38,19 +87,50 @@ public class Tetris extends JFrame implements KeyListener{
     public TimerTask task_move = new TimerTask(){
       public void run() {
         if (isLeft) {
-            game(1);
+            queryLeft = true;
         }
         if (isRight) {
-            game(2);
+            queryRight = true;
         }
-        if (isUp) {
-
-        }
-        if (isDown) {
-
-        };
+        
       }
     };
+
+    public Timer timer_rotate = new Timer();
+    public TimerTask task_rotate = new TimerTask(){
+        public void run() {
+            if (isUp) {
+                queryUp = true;
+            }
+            if (isDown) {
+                queryDown = true;
+            };
+        }
+      };
+
+    public Timer timer_main = new Timer();
+    public TimerTask task_main = new TimerTask() {
+        public void run() {
+            if (queryLeft) {
+                game(1);
+                queryLeft = false;
+            }
+            if (queryRight) {
+                game(2);
+                queryRight = false;
+            }
+            if (queryUp) {
+                game(3);
+                queryUp = false;
+            }
+            if (queryDown) {
+                game(4);
+                queryDown = false;
+            }
+        }
+        
+    };
+    
 
     public void game(int who) {
         for (int i = 0; i < 20; i++) {
@@ -172,6 +252,7 @@ public class Tetris extends JFrame implements KeyListener{
                 game_field[1][5][0] = 1;
                 game_field[1][5][1] = 7;
             }
+            figure_state = 0;
         } else {
             if (who == 0) {
                 for (int i = 0; i < 4; i++) {
@@ -182,21 +263,21 @@ public class Tetris extends JFrame implements KeyListener{
                 boolean el2 = falling[0][0]+1 < 20 && falling[1][0]+1 < 20 && falling[2][0]+1 < 20 && falling[3][0]+1 < 20;
                 boolean el1 = false;
                 if (el2) {
-                    if (falling[0][2] == 1) {
-                        el1 = game_field[falling[2][0]+1][falling[2][1]][0] == 0 && game_field[falling[3][0]+1][falling[3][1]][0] == 0;
-                    } else if (falling[0][2] == 2 || falling[0][2] == 3 || falling[0][2] == 5 || falling[0][2] == 6) {
-                        el1 = game_field[falling[1][0]+1][falling[1][1]][0] == 0 && game_field[falling[2][0]+1][falling[2][1]][0] == 0 && game_field[falling[3][0]+1][falling[3][1]][0] == 0;
-                    } else if (falling[0][2] == 4) {
-                        el1 = game_field[falling[0][0]+1][falling[0][1]][0] == 0 && game_field[falling[1][0]+1][falling[1][1]][0] == 0 && game_field[falling[2][0]+1][falling[2][1]][0] == 0 && game_field[falling[3][0]+1][falling[3][1]][0] == 0;
-                    } else if (falling[0][2] == 7) {
-                        el1 = game_field[falling[0][0]+1][falling[0][1]][0] == 0 && game_field[falling[2][0]+1][falling[2][1]][0] == 0 && game_field[falling[3][0]+1][falling[3][1]][0] == 0;
-                    }
+                    el1 = (game_field[falling[0][0]+1][falling[0][1]][0] == 0 || game_field[falling[0][0]+1][falling[0][1]][1] == falling[0][2]) && (game_field[falling[1][0]+1][falling[1][1]][0] == 0 || game_field[falling[1][0]+1][falling[1][1]][1] == falling[1][2]) && (game_field[falling[2][0]+1][falling[2][1]][0] == 0 || game_field[falling[2][0]+1][falling[2][1]][1] == falling[2][2]) && (game_field[falling[3][0]+1][falling[3][1]][0] == 0 || game_field[falling[3][0]+1][falling[3][1]][1] == falling[3][2]);
                 }
                 
                 for (int i = 0; i < 4; i++) {
                     if (el1 && el2) {
-                        game_field[falling[i][0]+1][falling[i][1]][0] = 1;
-                        game_field[falling[i][0]+1][falling[i][1]][1] = falling[i][2];
+                        if (falling[i][1] >= 0 && falling[i][1] < 10) {
+                            game_field[falling[i][0]+1][falling[i][1]][0] = 1;
+                            game_field[falling[i][0]+1][falling[i][1]][1] = falling[i][2];
+                        } else if (falling[i][1] < 10){
+                            game_field[falling[i][0]][0][0] = 1;
+                            game_field[falling[i][0]][0][1] = falling[i][2];
+                        } else {
+                            game_field[19][falling[i][1]][0] = 1;
+                            game_field[19][falling[i][1]][1] = falling[i][2];
+                        }
                     } else {
                         game_field[falling[i][0]][falling[i][1]][0] = 1;
                         game_field[falling[i][0]][falling[i][1]][1] = 0;
@@ -204,14 +285,16 @@ public class Tetris extends JFrame implements KeyListener{
 
                 }
             } else if (who == 1) {
-                if (falling[0][1] - 1 >= 0 && falling[1][1] - 1 >= 0 && falling[2][1] - 0 >= 0 && falling[3][1] - 1 >= 0 && (game_field[falling[0][0]][falling[0][1] - 1][0] == 0 || game_field[falling[0][0]][falling[0][1] - 1][1] == falling[0][2]) && (game_field[falling[1][0]][falling[1][1] - 1][0] == 0 || game_field[falling[1][0]][falling[1][1] - 1][1] == falling[1][2]) && (game_field[falling[2][0]][falling[2][1] - 1][0] == 0 || game_field[falling[2][0]][falling[2][1] - 1][1] == falling[2][2]) && (game_field[falling[3][0]][falling[3][1] - 1][0] == 0 || game_field[falling[3][0]][falling[3][1] - 1][1] == falling[3][2])) {
-                    for (int i = 0; i < 4; i++) {
-                        game_field[falling[i][0]][falling[i][1]][0] = 0;
-                        game_field[falling[i][0]][falling[i][1]][1] = 0;
-                    }
-                    for (int i = 0; i < 4; i++) {
-                        game_field[falling[i][0]][falling[i][1]-1][0] = 1;
-                        game_field[falling[i][0]][falling[i][1]-1][1] = falling[i][2];
+                if (falling[0][1] - 1 >= 0 && falling[1][1] - 1 >= 0 && falling[2][1] - 0 >= 0 && falling[3][1] - 1 >= 0) {
+                    if ((game_field[falling[0][0]][falling[0][1] - 1][0] == 0 || game_field[falling[0][0]][falling[0][1] - 1][1] == falling[0][2]) && (game_field[falling[1][0]][falling[1][1] - 1][0] == 0 || game_field[falling[1][0]][falling[1][1] - 1][1] == falling[1][2]) && (game_field[falling[2][0]][falling[2][1] - 1][0] == 0 || game_field[falling[2][0]][falling[2][1] - 1][1] == falling[2][2]) && (game_field[falling[3][0]][falling[3][1] - 1][0] == 0 || game_field[falling[3][0]][falling[3][1] - 1][1] == falling[3][2])) {
+                        for (int i = 0; i < 4; i++) {
+                            game_field[falling[i][0]][falling[i][1]][0] = 0;
+                            game_field[falling[i][0]][falling[i][1]][1] = 0;
+                        }
+                        for (int i = 0; i < 4; i++) {
+                            game_field[falling[i][0]][falling[i][1]-1][0] = 1;
+                            game_field[falling[i][0]][falling[i][1]-1][1] = falling[i][2];
+                        }
                     }
                 }
             } else if (who == 2) {
@@ -226,9 +309,64 @@ public class Tetris extends JFrame implements KeyListener{
                     }
                 }
             } else if (who == 3) {
+                boolean el = true;
+                figure = falling[0][2];
+                
+                if (figure_state == 3) {
+                    if (falling[0][0] + tetraminos[figure][0][0][0] >= 0 && falling[1][0] + tetraminos[figure][0][1][0] >= 0 && falling[2][0] + tetraminos[figure][0][2][0] >= 0 && falling[3][0] + tetraminos[figure][0][3][0] >= 0 && falling[0][0] + tetraminos[figure][0][0][0] < 20 && falling[1][0] + tetraminos[figure][0][1][0] < 20 && falling[2][0] + tetraminos[figure][0][2][0] < 20 && falling[3][0] + tetraminos[figure][0][3][0] < 20 && falling[0][1] + tetraminos[figure][0][0][1] >= 0 && falling[1][1] + tetraminos[figure][0][1][1] >= 0 && falling[2][1] + tetraminos[figure][0][2][1] >= 0 && falling[3][1] + tetraminos[figure][0][3][1] >= 0 && falling[0][1] + tetraminos[figure][0][0][1] < 10 && falling[1][1] + tetraminos[figure][0][1][1] < 10 && falling[2][1] + tetraminos[figure][0][2][1] < 10 && falling[3][1] + tetraminos[figure][0][3][1] < 10) {
+                        if ((game_field[falling[0][0] + tetraminos[figure][0][0][0]][falling[0][1] + tetraminos[figure][0][0][1]][0] == 1 && game_field[falling[0][0] + tetraminos[figure][0][0][0]][falling[0][1] + tetraminos[figure][0][0][1]][1] == 0) || (game_field[falling[1][0] + tetraminos[figure][0][1][0]][falling[1][1] + tetraminos[figure][0][1][1]][0] == 1 && game_field[falling[1][0] + tetraminos[figure][0][1][0]][falling[1][1] + tetraminos[figure][0][1][1]][1] != falling[1][2]) || (game_field[falling[2][0] + tetraminos[figure][0][2][0]][falling[2][1] + tetraminos[figure][0][2][1]][0] == 1 && game_field[falling[2][0] + tetraminos[figure][0][2][0]][falling[2][1] + tetraminos[figure][0][2][1]][1] != falling[2][2]) || (game_field[falling[3][0] + tetraminos[figure][0][3][0]][falling[3][1] + tetraminos[figure][0][3][1]][0] == 1 && game_field[falling[3][0] + tetraminos[figure][0][3][0]][falling[3][1] + tetraminos[figure][0][3][1]][1] != falling[3][2])){
+                            el = false;
+                        }
+                    } else {
+                        el = false;
+                    }
+                } else {
+                    if (falling[0][0] + tetraminos[figure][figure_state+1][0][0] >= 0 && falling[1][0] + tetraminos[figure][figure_state+1][1][0] >= 0 && falling[2][0] + tetraminos[figure][figure_state+1][2][0] >= 0 && falling[3][0] + tetraminos[figure][figure_state+1][3][0] >= 0 && falling[0][0] + tetraminos[figure][figure_state+1][0][0] < 20 && falling[1][0] + tetraminos[figure][figure_state+1][1][0] < 20 && falling[2][0] + tetraminos[figure][figure_state+1][2][0] < 20 && falling[3][0] + tetraminos[figure][figure_state+1][3][0] < 20 && falling[0][1] + tetraminos[figure][figure_state+1][0][1] >= 0 && falling[1][1] + tetraminos[figure][figure_state+1][1][1] >= 0 && falling[2][1] + tetraminos[figure][figure_state+1][2][1] >= 0 && falling[3][1] + tetraminos[figure][figure_state+1][3][1] >= 0 && falling[0][1] + tetraminos[figure][figure_state+1][0][1] < 10 && falling[1][1] + tetraminos[figure][figure_state+1][1][1] < 10 && falling[2][1] + tetraminos[figure][figure_state+1][2][1] < 10 && falling[3][1] + tetraminos[figure][figure_state+1][3][1] < 10) {
+                        if ((game_field[falling[0][0] + tetraminos[figure][figure_state+1][0][0]][falling[0][1] + tetraminos[figure][figure_state+1][0][1]][0] == 1 && game_field[falling[0][0] + tetraminos[figure][figure_state+1][0][0]][falling[0][1] + tetraminos[figure][figure_state+1][0][1]][1] != falling[0][2]) || (game_field[falling[1][0] + tetraminos[figure][figure_state+1][1][0]][falling[1][1] + tetraminos[figure][figure_state+1][1][1]][0] == 1 && game_field[falling[1][0] + tetraminos[figure][figure_state+1][1][0]][falling[1][1] + tetraminos[figure][figure_state+1][1][1]][1] != falling[1][2]) || (game_field[falling[2][0] + tetraminos[figure][figure_state+1][2][0]][falling[2][1] + tetraminos[figure][figure_state+1][2][1]][0] == 1 && game_field[falling[2][0] + tetraminos[figure][figure_state+1][2][0]][falling[2][1] + tetraminos[figure][figure_state+1][2][1]][1] != falling[2][2]) || (game_field[falling[3][0] + tetraminos[figure][figure_state+1][3][0]][falling[3][1] + tetraminos[figure][figure_state+1][3][1]][0] == 1 && game_field[falling[3][0] + tetraminos[figure][figure_state+1][3][0]][falling[3][1] + tetraminos[figure][figure_state+1][3][1]][1] != falling[3][2])){
+                            el = false;
+                        }
+                    } else {
+                        el = false;
+                    }
+                }
+
+                if (el) {
+                    for (int i = 0; i < 4; i++) {
+                        game_field[falling[i][0]][falling[i][1]][0] = 0;
+                        game_field[falling[i][0]][falling[i][1]][1] = 0;
+                    }
+    
+                    if (figure_state < 3) {
+                        figure_state += 1;
+                    } else {
+                        figure_state = 0;
+                    }
+    
+                    for (int i = 0; i < 4; i++) {
+                        game_field[falling[i][0] + tetraminos[figure][figure_state][i][0]][falling[i][1] + tetraminos[figure][figure_state][i][1]][0] = 1;
+                        game_field[falling[i][0] + tetraminos[figure][figure_state][i][0]][falling[i][1] + tetraminos[figure][figure_state][i][1]][1] = falling[0][2];
+                    }
+                }
+
+                
 
             } else if (who == 4) {
-                
+                for (int i = 0; i < 4; i++) {
+                    game_field[falling[i][0]][falling[i][1]][0] = 0;
+                    game_field[falling[i][0]][falling[i][1]][1] = 0;
+                }
+                int plus = 0;
+                while (falling[0][0]+plus < 20 && falling[1][0]+plus < 20 && falling[2][0]+plus < 20 && falling[3][0]+plus < 20) {
+                    if ((game_field[falling[0][0]+plus][falling[0][1]][0] == 0 || game_field[falling[0][0]+plus][falling[0][1]][1] == falling[0][2]) && (game_field[falling[1][0]+plus][falling[1][1]][0] == 0 || game_field[falling[1][0]+plus][falling[1][1]][1] == falling[1][2]) && (game_field[falling[2][0]+plus][falling[2][1]][0] == 0 || game_field[falling[2][0]+plus][falling[2][1]][1] == falling[2][2]) || (game_field[falling[3][0]+plus][falling[3][1]][0] == 0 || game_field[falling[3][0]+plus][falling[3][1]][1] == falling[3][2])) {
+                        plus++;
+                    } else {
+                        break;
+                    }
+                }
+                for (int i = 0; i < 4; i++) {
+                    game_field[falling[i][0]+(plus-1)][falling[i][1]][0] = 1;
+                    game_field[falling[i][0]+(plus-1)][falling[i][1]][1] = falling[i][2];
+                }
             }
         }
         
@@ -290,7 +428,9 @@ public class Tetris extends JFrame implements KeyListener{
     }
  
     @Override
-    public void keyTyped(KeyEvent arg0) {}
+    public void keyTyped(KeyEvent e) {
+
+    }
      
 
     private class MoveThread extends Thread{
