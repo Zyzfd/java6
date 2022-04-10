@@ -16,6 +16,7 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean queryRight = false;
     private boolean queryUp = false;
     private boolean queryDown = false;
+    private boolean exit = false;
     public int[][][] game_field = new int[20][10][2];
     public int[][] falling = new int[4][3];
     public int figure_state = 0;
@@ -133,6 +134,19 @@ public class Tetris extends JFrame implements KeyListener{
     
 
     public void game(int who) {
+        for (int i = 3; i < 7; i++) {
+            if (game_field[0][i][0] == 1 && game_field[0][i][1] == 0) {
+                exit = true;
+            }
+        }
+
+        for (int i = 4; i < 7; i++) {
+            if (game_field[1][i][0] == 1 && game_field[1][i][1] == 0) {
+                exit = true;
+            }
+        }
+        
+
         for (int i = 0; i < 20; i++) {
             int sum = 0;
             for (int j = 0; j < 10; j++) {
@@ -255,6 +269,7 @@ public class Tetris extends JFrame implements KeyListener{
             figure_state = 0;
         } else {
             if (who == 0) {
+
                 for (int i = 0; i < 4; i++) {
                     game_field[falling[i][0]][falling[i][1]][0] = 0;
                     game_field[falling[i][0]][falling[i][1]][1] = 0;
@@ -355,11 +370,12 @@ public class Tetris extends JFrame implements KeyListener{
                     game_field[falling[i][0]][falling[i][1]][0] = 0;
                     game_field[falling[i][0]][falling[i][1]][1] = 0;
                 }
-                int plus = 0;
-                while (falling[0][0]+plus < 20 && falling[1][0]+plus < 20 && falling[2][0]+plus < 20 && falling[3][0]+plus < 20) {
-                    if ((game_field[falling[0][0]+plus][falling[0][1]][0] == 0 || game_field[falling[0][0]+plus][falling[0][1]][1] == falling[0][2]) && (game_field[falling[1][0]+plus][falling[1][1]][0] == 0 || game_field[falling[1][0]+plus][falling[1][1]][1] == falling[1][2]) && (game_field[falling[2][0]+plus][falling[2][1]][0] == 0 || game_field[falling[2][0]+plus][falling[2][1]][1] == falling[2][2]) || (game_field[falling[3][0]+plus][falling[3][1]][0] == 0 || game_field[falling[3][0]+plus][falling[3][1]][1] == falling[3][2])) {
+                int plus = 1;
+                while (falling[0][0]+(plus+1) < 20 && falling[1][0]+(plus+1) < 20 && falling[2][0]+(plus+1) < 20 && falling[3][0]+(plus+1) < 20) {
+                    if ((game_field[falling[0][0]+plus][falling[0][1]][0] == 0 || game_field[falling[0][0]+plus][falling[0][1]][1] != 0) && (game_field[falling[1][0]+plus][falling[1][1]][0] == 0 || game_field[falling[1][0]+plus][falling[1][1]][1] != 0) && (game_field[falling[2][0]+plus][falling[2][1]][0] == 0 || game_field[falling[2][0]+plus][falling[2][1]][1] != 0) && (game_field[falling[3][0]+plus][falling[3][1]][0] == 0 || game_field[falling[3][0]+plus][falling[3][1]][1] != 0)) {
                         plus++;
                     } else {
+                        plus--;
                         break;
                     }
                 }
@@ -443,7 +459,9 @@ public class Tetris extends JFrame implements KeyListener{
          
         public void run(){
             while(true) {
-                
+                if (exit) {
+                    System.exit(0);
+                }
                 game(0);
                 
                 try {
