@@ -16,9 +16,13 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean queryRight = false;
     private boolean queryUp = false;
     private boolean queryDown = false;
-    private boolean exit = false;
-    public int score = 0;
-    public int[][][] game_field = new int[20][10][2];
+    public static boolean exit = false;
+    public static int erased_lines = 0;
+    public static int score = 0;
+    public int multiplier = 0;
+    public int speed_multiplier = 0;
+    public static int[][][] game_field = new int[20][10][2];
+    public static int[][][] next_falling = new int[2][10][2];
     public int[][] falling = new int[4][3];
     public int figure_state = 0;
     public int figure;
@@ -64,21 +68,25 @@ public class Tetris extends JFrame implements KeyListener{
          {{-1,1}, {0,-1}, {-1,0}, {0,-2}}}
     };
 
-    public Tetris(int width, int height) {
-        this.setSize(width, height);
+    public Tetris() {
         this.addKeyListener(this);
         thread = new MoveThread(this);
         thread.start();
 
-        timer_move.scheduleAtFixedRate(task_move, 0, 100);
-        timer_rotate.scheduleAtFixedRate(task_rotate, 0, 100);
+        timer_move.scheduleAtFixedRate(task_move, 0, 110);
+        timer_rotate.scheduleAtFixedRate(task_rotate, 0, 125);
+        timer_down.scheduleAtFixedRate(task_down, 0, 50);
         timer_main.scheduleAtFixedRate(task_main, 0, 10);
     }
 
     public static void main(String[] args) {
-        JFrame win = new Tetris(1000, 1000);
+        JFrame win = new Tetris();
+        Draw_graphics draw_gr = new Draw_graphics();
+        draw_gr.setSize(300,100);
+        win.setSize(1000, 1000);
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         win.setLayout(new BorderLayout(1, 1));
+        win.add(draw_gr);
         win.setVisible(true);
     }
 
@@ -103,11 +111,17 @@ public class Tetris extends JFrame implements KeyListener{
             if (isUp) {
                 queryUp = true;
             }
+        }
+    };
+
+    public Timer timer_down = new Timer();
+    public TimerTask task_down = new TimerTask(){
+        public void run() {
             if (isDown) {
                 queryDown = true;
             };
         }
-      };
+    };
 
     public Timer timer_main = new Timer();
     public TimerTask task_main = new TimerTask() {
@@ -155,7 +169,17 @@ public class Tetris extends JFrame implements KeyListener{
                 }
             }
             if (sum == 10) {
-                score++;
+                if (multiplier == 0) {
+                    score += 100;
+                } else if (multiplier == 1) {
+                    score += 200;
+                } else if (multiplier == 2) {
+                    score += 400;
+                } else if (multiplier == 3) {
+                    score += 800;
+                }
+                multiplier++;
+                erased_lines++;
                 for (int k = i; k >= 0; k--) {
                     if (k == 0) {
                         for (int z = 0; z < 10; z++) {
@@ -171,6 +195,8 @@ public class Tetris extends JFrame implements KeyListener{
                         }
                     }
                 }
+            } else {
+                multiplier = 0;
             }
         }
 
@@ -196,77 +222,99 @@ public class Tetris extends JFrame implements KeyListener{
         }
         if (no_falling) {
             Random random = new Random();
-            int i = random.nextInt(7) + 1;
-            if (i == 1) {
-                game_field[0][4][0] = 1;
-                game_field[0][4][1] = 1;
-                game_field[0][5][0] = 1;
-                game_field[0][5][1] = 1;
-                game_field[1][4][0] = 1;
-                game_field[1][4][1] = 1;
-                game_field[1][5][0] = 1;
-                game_field[1][5][1] = 1;
+            int new_fig = random.nextInt(7) + 1;
+
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 10; j++) {
+                    for (int d = 0; d < 2; d++) {
+                        game_field[i][j][d] = next_falling[i][j][d];
+                    }
+                }
             }
-            if (i == 2) {
-                game_field[0][3][0] = 1;
-                game_field[0][3][1] = 2;
-                game_field[1][4][0] = 1;
-                game_field[1][4][1] = 2;
-                game_field[1][3][0] = 1;
-                game_field[1][3][1] = 2;
-                game_field[1][5][0] = 1;
-                game_field[1][5][1] = 2;
+
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 10; j++) {
+                    for (int d = 0; d < 2; d++) {
+                        next_falling[i][j][d] = 0;
+                    }
+                }
             }
-            if (i == 3) {
-                game_field[0][5][0] = 1;
-                game_field[0][5][1] = 3;
-                game_field[1][4][0] = 1;
-                game_field[1][4][1] = 3;
-                game_field[1][3][0] = 1;
-                game_field[1][3][1] = 3;
-                game_field[1][5][0] = 1;
-                game_field[1][5][1] = 3;
+
+            switch (new_fig) {
+                case 1:
+                    next_falling[0][4][0] = 1;
+                    next_falling[0][4][1] = 1;
+                    next_falling[0][5][0] = 1;
+                    next_falling[0][5][1] = 1;
+                    next_falling[1][4][0] = 1;
+                    next_falling[1][4][1] = 1;
+                    next_falling[1][5][0] = 1;
+                    next_falling[1][5][1] = 1;
+                    break;
+                case 2:
+                    next_falling[0][3][0] = 1;
+                    next_falling[0][3][1] = 2;
+                    next_falling[1][4][0] = 1;
+                    next_falling[1][4][1] = 2;
+                    next_falling[1][3][0] = 1;
+                    next_falling[1][3][1] = 2;
+                    next_falling[1][5][0] = 1;
+                    next_falling[1][5][1] = 2;
+                    break;
+                case 3:
+                    next_falling[0][5][0] = 1;
+                    next_falling[0][5][1] = 3;
+                    next_falling[1][4][0] = 1;
+                    next_falling[1][4][1] = 3;
+                    next_falling[1][3][0] = 1;
+                    next_falling[1][3][1] = 3;
+                    next_falling[1][5][0] = 1;
+                    next_falling[1][5][1] = 3;
+                    break;
+                case 4:
+                    next_falling[0][3][0] = 1;
+                    next_falling[0][3][1] = 4;
+                    next_falling[0][4][0] = 1;
+                    next_falling[0][4][1] = 4;
+                    next_falling[0][5][0] = 1;
+                    next_falling[0][5][1] = 4;
+                    next_falling[0][6][0] = 1;
+                    next_falling[0][6][1] = 4;
+                    break;
+                case 5:
+                    next_falling[0][4][0] = 1;
+                    next_falling[0][4][1] = 5;
+                    next_falling[1][3][0] = 1;
+                    next_falling[1][3][1] = 5;
+                    next_falling[1][4][0] = 1;
+                    next_falling[1][4][1] = 5;
+                    next_falling[1][5][0] = 1;
+                    next_falling[1][5][1] = 5;
+                    break;
+                case 6:
+                    next_falling[0][4][0] = 1;
+                    next_falling[0][4][1] = 6;
+                    next_falling[0][5][0] = 1;
+                    next_falling[0][5][1] = 6;
+                    next_falling[1][3][0] = 1;
+                    next_falling[1][3][1] = 6;
+                    next_falling[1][4][0] = 1;
+                    next_falling[1][4][1] = 6;
+                    break;
+                case 7:
+                    next_falling[0][3][0] = 1;
+                    next_falling[0][3][1] = 7;
+                    next_falling[0][4][0] = 1;
+                    next_falling[0][4][1] = 7;
+                    next_falling[1][4][0] = 1;
+                    next_falling[1][4][1] = 7;
+                    next_falling[1][5][0] = 1;
+                    next_falling[1][5][1] = 7;
+                    break;
+                default:
+                    break;
             }
-            if (i == 4) {
-                game_field[0][3][0] = 1;
-                game_field[0][3][1] = 4;
-                game_field[0][4][0] = 1;
-                game_field[0][4][1] = 4;
-                game_field[0][5][0] = 1;
-                game_field[0][5][1] = 4;
-                game_field[0][6][0] = 1;
-                game_field[0][6][1] = 4;
-            }
-            if (i == 5) {
-                game_field[0][4][0] = 1;
-                game_field[0][4][1] = 5;
-                game_field[1][3][0] = 1;
-                game_field[1][3][1] = 5;
-                game_field[1][4][0] = 1;
-                game_field[1][4][1] = 5;
-                game_field[1][5][0] = 1;
-                game_field[1][5][1] = 5;
-            }
-            if (i == 6) {
-                game_field[0][4][0] = 1;
-                game_field[0][4][1] = 6;
-                game_field[0][5][0] = 1;
-                game_field[0][5][1] = 6;
-                game_field[1][3][0] = 1;
-                game_field[1][3][1] = 6;
-                game_field[1][4][0] = 1;
-                game_field[1][4][1] = 6;
-            }
-            if (i == 7) {
-                game_field[0][3][0] = 1;
-                game_field[0][3][1] = 7;
-                game_field[0][4][0] = 1;
-                game_field[0][4][1] = 7;
-                game_field[1][4][0] = 1;
-                game_field[1][4][1] = 7;
-                game_field[1][5][0] = 1;
-                game_field[1][5][1] = 7;
-            }
+
             figure_state = 0;
         } else {
             if (who == 0) {
@@ -301,7 +349,7 @@ public class Tetris extends JFrame implements KeyListener{
 
                 }
             } else if (who == 1) {
-                if (falling[0][1] - 1 >= 0 && falling[1][1] - 1 >= 0 && falling[2][1] - 0 >= 0 && falling[3][1] - 1 >= 0) {
+                if (falling[0][1] - 1 >= 0 && falling[1][1] - 1 >= 0 && falling[2][1] - 1 >= 0 && falling[3][1] - 1 >= 0) {
                     if ((game_field[falling[0][0]][falling[0][1] - 1][0] == 0 || game_field[falling[0][0]][falling[0][1] - 1][1] == falling[0][2]) && (game_field[falling[1][0]][falling[1][1] - 1][0] == 0 || game_field[falling[1][0]][falling[1][1] - 1][1] == falling[1][2]) && (game_field[falling[2][0]][falling[2][1] - 1][0] == 0 || game_field[falling[2][0]][falling[2][1] - 1][1] == falling[2][2]) && (game_field[falling[3][0]][falling[3][1] - 1][0] == 0 || game_field[falling[3][0]][falling[3][1] - 1][1] == falling[3][2])) {
                         for (int i = 0; i < 4; i++) {
                             game_field[falling[i][0]][falling[i][1]][0] = 0;
@@ -387,49 +435,6 @@ public class Tetris extends JFrame implements KeyListener{
         
         repaint();
     }
-
-    @Override
-    public void paint(Graphics g) {
-        Graphics2D g2d = (Graphics2D)g;
-        int y = 80;
-        for (int i = 0; i < 20; i++) {
-            int x = 275;
-            for (int j = 0; j < 10; j++) {
-                if (game_field[i][j][0] == 1) {
-                    if (game_field[i][j][1] == 0) {
-                        g2d.setColor(Color.BLACK);
-                    } else if (game_field[i][j][1] == 1){
-                        g2d.setColor(Color.YELLOW);
-                    } else if (game_field[i][j][1] == 2){
-                        g2d.setColor(Color.BLUE);
-                    } else if (game_field[i][j][1] == 3){
-                        g2d.setColor(Color.ORANGE);
-                    } else if (game_field[i][j][1] == 4){
-                        g2d.setColor(Color.CYAN);
-                    } else if (game_field[i][j][1] == 5){
-                        g2d.setColor(Color.PINK);
-                    } else if (game_field[i][j][1] == 6){
-                        g2d.setColor(Color.GREEN);
-                    } else if (game_field[i][j][1] == 7){
-                        g2d.setColor(Color.RED);
-                    }
-                    g2d.fillRect(x, y, 40, 40);
-                } else {
-                    g2d.setColor(Color.WHITE);
-                    g2d.fillRect(x, y, 40, 40);
-                }
-                x += 42;
-            }
-            y += 42;
-        }
-        String str = String.valueOf(score);
-
-        g.setColor(Color.BLACK);
-        g.setFont(new Font("Serif", Font.PLAIN, 36));
-        g.drawString("OK",20,20); 
-    }
-     
-    //Listener
      
     @Override
     public void keyPressed(KeyEvent e) {
@@ -464,15 +469,101 @@ public class Tetris extends JFrame implements KeyListener{
         public void run(){
             while(true) {
                 if (exit) {
-                    System.exit(0);
+                    break;
                 }
+                speed_multiplier = score / 600;
+                
                 game(0);
                 
                 try {
-                    Thread.sleep(400);
+                    Thread.sleep(600 - speed_multiplier * 70);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+    static class Draw_graphics extends JPanel{
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            String text_score = String.valueOf(score);
+            String text_erased = String.valueOf(erased_lines);
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Roboto", Font.PLAIN, 30));
+            g.drawString("Очки: " + text_score, 5, 400);
+            g.drawString("Стертых линий: " + text_erased, 5, 450);
+
+            Graphics2D g2d = (Graphics2D)g;
+            int y = 100;
+            for (int i = 0; i < 20; i++) {
+                int x = 275;
+                for (int j = 0; j < 10; j++) {
+                    if (game_field[i][j][0] == 1) {
+                        if (game_field[i][j][1] == 0) {
+                            g2d.setColor(Color.BLACK);
+                        } else if (game_field[i][j][1] == 1){
+                            g2d.setColor(Color.YELLOW);
+                        } else if (game_field[i][j][1] == 2){
+                            g2d.setColor(Color.BLUE);
+                        } else if (game_field[i][j][1] == 3){
+                            g2d.setColor(Color.ORANGE);
+                        } else if (game_field[i][j][1] == 4){
+                            g2d.setColor(Color.CYAN);
+                        } else if (game_field[i][j][1] == 5){
+                            g2d.setColor(Color.PINK);
+                        } else if (game_field[i][j][1] == 6){
+                            g2d.setColor(Color.GREEN);
+                        } else if (game_field[i][j][1] == 7){
+                            g2d.setColor(Color.RED);
+                        }
+                        g2d.fillRect(x, y, 40, 40);
+                    } else {
+                        g2d.setColor(Color.WHITE);
+                        g2d.fillRect(x, y, 40, 40);
+                    }
+                    x += 42;
+                }
+                y += 42;
+            }
+
+            y = 10;
+            for (int i = 0; i < 2; i++) {
+                int x = 275;
+                for (int j = 0; j < 10; j++) {
+                    if (next_falling[i][j][0] == 1) {
+                        if (next_falling[i][j][1] == 0) {
+                            g2d.setColor(Color.BLACK);
+                        } else if (next_falling[i][j][1] == 1){
+                            g2d.setColor(Color.YELLOW);
+                        } else if (next_falling[i][j][1] == 2){
+                            g2d.setColor(Color.BLUE);
+                        } else if (next_falling[i][j][1] == 3){
+                            g2d.setColor(Color.ORANGE);
+                        } else if (next_falling[i][j][1] == 4){
+                            g2d.setColor(Color.CYAN);
+                        } else if (next_falling[i][j][1] == 5){
+                            g2d.setColor(Color.PINK);
+                        } else if (next_falling[i][j][1] == 6){
+                            g2d.setColor(Color.GREEN);
+                        } else if (next_falling[i][j][1] == 7){
+                            g2d.setColor(Color.RED);
+                        }
+                        g2d.fillRect(x, y, 40, 40);
+                    } else {
+                        g2d.setColor(Color.WHITE);
+                        g2d.fillRect(x, y, 40, 40);
+                    }
+                    x += 42;
+                }
+                y += 42;
+            }
+
+            if (exit) {
+                g.setColor(Color.RED);
+                g.setFont(new Font("Roboto", Font.BOLD, 55));
+                g.drawString("Game Over", 350, 500);
             }
         }
     }
