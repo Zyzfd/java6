@@ -36,12 +36,10 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean isRight = false;
     private boolean isUp = false;
     private boolean isDown = false;
-    private boolean isR = false;
     private boolean queryLeft = false;
     private boolean queryRight = false;
     private boolean queryUp = false;
     private boolean queryDown = false;
-    private boolean queryR = false;
     public static boolean exit = false;
     public static Stack<Node> stack = new Stack<>();
     public static int erased_lines = 0;
@@ -502,18 +500,11 @@ public class Tetris extends JFrame implements KeyListener{
 
         String to_node = "";
         to_node += score + " очков\n";
-        to_node += erased_lines + " стертых линий";
+        to_node += erased_lines + " стертых линий\n";
         stack.push(new Node(to_node));
 
         String out = stack.peek().toString();
-        System.out.print(out + "-->");
-
-        score = 0;
-        erased_lines = 0;
-        figure_state = 0;
-        figure = 0;
-        multiplier = 0;
-        speed_multiplier = 0;
+        System.out.print(out + " |\n |\n\\ /\n");
         new_game_win();
     }
 
@@ -529,8 +520,14 @@ public class Tetris extends JFrame implements KeyListener{
         newGame.add(btnpanel, BorderLayout.SOUTH);
         button.addActionListener(e ->
 		{
-				exit = false;
-                newGame.setVisible(false);
+            score = 0;
+            erased_lines = 0;
+            figure_state = 0;
+            figure = 0;
+            multiplier = 0;
+            speed_multiplier = 0;
+            exit = false;
+            newGame.setVisible(false);
 		});
         newGame.setVisible(true);
     }

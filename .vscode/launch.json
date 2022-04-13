@@ -6,30 +6,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch test",
-            "request": "launch",
-            "mainClass": "test",
-            "projectName": "java6_b64e0b15"
-        },
-        {
-            "type": "java",
             "name": "Launch Tetris",
             "request": "launch",
             "mainClass": "Tetris",
             "projectName": "java6_b64e0b15"
-        },
-        {
-            "type": "java",
-            "name": "Launch Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
-            "name": "Launch Tetris",
-            "request": "launch",
-            "mainClass": "Tetris",
-            "projectName": "java6_d048739e"
         }
     ]
 }
