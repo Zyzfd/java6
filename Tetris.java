@@ -4,7 +4,31 @@ import java.awt.event.*;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.io.*;
+import java.util.Scanner;
+import java.util.Stack;
 
+
+class Node {
+    private String value;
+
+    public Node(String value) {
+        this.value = value;
+    }
+    
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+ 
+    @Override
+    public String toString() {
+        return value;
+    }
+ }
 
 public class Tetris extends JFrame implements KeyListener{
     private Thread thread;
@@ -12,20 +36,25 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean isRight = false;
     private boolean isUp = false;
     private boolean isDown = false;
+    private boolean isR = false;
     private boolean queryLeft = false;
     private boolean queryRight = false;
     private boolean queryUp = false;
     private boolean queryDown = false;
+    private boolean queryR = false;
     public static boolean exit = false;
+    public static Stack<Node> stack = new Stack<>();
     public static int erased_lines = 0;
     public static int score = 0;
-    public int multiplier = 0;
-    public int speed_multiplier = 0;
+    public static String records_score = "0";
+    public static String records_line = "0";
+    public static int multiplier = 0;
+    public static int speed_multiplier = 0;
     public static int[][][] game_field = new int[20][10][2];
     public static int[][][] next_falling = new int[2][10][2];
     public int[][] falling = new int[4][3];
-    public int figure_state = 0;
-    public int figure;
+    public static int figure_state = 0;
+    public static int figure;
     public int[][][][] tetraminos = {
         {{{0,0}, {0,0}, {0,0}, {0,0}},
          {{0,0}, {0,0}, {0,0}, {0,0}},
@@ -80,14 +109,31 @@ public class Tetris extends JFrame implements KeyListener{
     }
 
     public static void main(String[] args) {
-        JFrame win = new Tetris();
-        Draw_graphics draw_gr = new Draw_graphics();
-        draw_gr.setSize(300,100);
-        win.setSize(1000, 1000);
-        win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        win.setLayout(new BorderLayout(1, 1));
-        win.add(draw_gr);
-        win.setVisible(true);
+        JFrame win;
+        try {
+            win = new Tetris();
+            Draw_graphics draw_gr = new Draw_graphics();
+            draw_gr.setSize(300,100);
+            win.setSize(1000, 1000);
+            win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            win.setLayout(new BorderLayout(1, 1));
+            win.add(draw_gr);
+            FileReader fr = new FileReader("records.txt");
+            Scanner scan = new Scanner(fr);
+            
+            if (scan.hasNextLine()) {
+                records_score = scan.nextLine();
+            }
+            if (scan.hasNextLine()) {
+                records_line = scan.nextLine();
+            }
+            scan.close();
+            fr.close();
+            win.setVisible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
     }
 
 
@@ -101,7 +147,6 @@ public class Tetris extends JFrame implements KeyListener{
         if (isRight) {
             queryRight = true;
         }
-        
       }
     };
 
@@ -120,6 +165,7 @@ public class Tetris extends JFrame implements KeyListener{
             if (isDown) {
                 queryDown = true;
             };
+            
         }
     };
 
@@ -220,6 +266,7 @@ public class Tetris extends JFrame implements KeyListener{
                 }
             }
         }
+
         if (no_falling) {
             Random random = new Random();
             int new_fig = random.nextInt(7) + 1;
@@ -435,6 +482,58 @@ public class Tetris extends JFrame implements KeyListener{
         
         repaint();
     }
+
+    public static void new_game() {
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 10; j++) {
+                for (int k = 0; k < 2; k++) {
+                    game_field[i][j][k] = 0;
+                }
+            }
+        }
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 10; j++) {
+                for (int k = 0; k < 2; k++) {
+                    next_falling[i][j][k] = 0;
+                }
+            }
+        }
+
+        String to_node = "";
+        to_node += score + " очков\n";
+        to_node += erased_lines + " стертых линий";
+        stack.push(new Node(to_node));
+
+        String out = stack.peek().toString();
+        System.out.print(out + "-->");
+
+        score = 0;
+        erased_lines = 0;
+        figure_state = 0;
+        figure = 0;
+        multiplier = 0;
+        speed_multiplier = 0;
+        new_game_win();
+    }
+
+    public static void new_game_win() {
+        JFrame newGame = new JFrame("New game");
+        newGame.setSize(600, 200);
+		JPanel btnpanel = new JPanel();
+        JPanel newPanel = new New_panel();
+        JButton button = new JButton("New Game");
+        newGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        btnpanel.add(button);
+        newGame.add(newPanel);
+        newGame.add(btnpanel, BorderLayout.SOUTH);
+        button.addActionListener(e ->
+		{
+				exit = false;
+                newGame.setVisible(false);
+		});
+        newGame.setVisible(true);
+    }
      
     @Override
     public void keyPressed(KeyEvent e) {
@@ -468,12 +567,20 @@ public class Tetris extends JFrame implements KeyListener{
          
         public void run(){
             while(true) {
-                if (exit) {
-                    break;
-                }
+
                 speed_multiplier = score / 600;
                 
-                game(0);
+
+                if (Integer.parseInt(records_score) < score) {
+                    records_score = Integer.toString(score);
+                }
+                if (Integer.parseInt(records_line) < erased_lines) {
+                    records_line = Integer.toString(erased_lines);
+                }
+
+                if (!exit) {
+                    game(0);
+                }
                 
                 try {
                     Thread.sleep(600 - speed_multiplier * 70);
@@ -485,6 +592,7 @@ public class Tetris extends JFrame implements KeyListener{
     }
 
     static class Draw_graphics extends JPanel{
+
         @Override
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -494,6 +602,8 @@ public class Tetris extends JFrame implements KeyListener{
             g.setFont(new Font("Roboto", Font.PLAIN, 30));
             g.drawString("Очки: " + text_score, 5, 400);
             g.drawString("Стертых линий: " + text_erased, 5, 450);
+            g.drawString("Рекорд очков: " + records_score, 700, 400);
+            g.drawString("Рекорд линий: " + records_line, 700, 450);
 
             Graphics2D g2d = (Graphics2D)g;
             int y = 100;
@@ -564,7 +674,33 @@ public class Tetris extends JFrame implements KeyListener{
                 g.setColor(Color.RED);
                 g.setFont(new Font("Roboto", Font.BOLD, 55));
                 g.drawString("Game Over", 350, 500);
+                try {
+                    FileWriter fw = new FileWriter("records.txt");
+                    fw.write(records_score + "\n");
+                    fw.write(records_line);
+                    fw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                new_game();
             }
+        }
+    }
+
+    static class New_panel extends JPanel{
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            g.setColor(Color.RED);
+            g.setFont(new Font("Roboto", Font.BOLD, 55));
+            String out = stack.peek().toString();
+            int x = 60;
+            int y = 70;
+            for (String retval : out.split("\n")) {
+                g.drawString(retval, x, y);
+                y += 50;
+            }
+            
         }
     }
 }
