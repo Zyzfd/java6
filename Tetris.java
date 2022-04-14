@@ -40,6 +40,8 @@ public class Tetris extends JFrame implements KeyListener{
     private boolean queryRight = false;
     private boolean queryUp = false;
     private boolean queryDown = false;
+    public static JFrame newGame = new JFrame("New game");
+    public static int games = 0;
     public static boolean exit = false;
     public static Stack<Node> stack = new Stack<>();
     public static int erased_lines = 0;
@@ -102,7 +104,7 @@ public class Tetris extends JFrame implements KeyListener{
 
         timer_move.scheduleAtFixedRate(task_move, 0, 110);
         timer_rotate.scheduleAtFixedRate(task_rotate, 0, 125);
-        timer_down.scheduleAtFixedRate(task_down, 0, 50);
+        timer_down.scheduleAtFixedRate(task_down, 0, 70);
         timer_main.scheduleAtFixedRate(task_main, 0, 10);
     }
 
@@ -505,31 +507,36 @@ public class Tetris extends JFrame implements KeyListener{
 
         String out = stack.peek().toString();
         System.out.print(out + " |\n |\n\\ /\n");
+        games++;
         new_game_win();
     }
 
     public static void new_game_win() {
-        JFrame newGame = new JFrame("New game");
-        newGame.setSize(600, 200);
-		JPanel btnpanel = new JPanel();
-        JPanel newPanel = new New_panel();
-        JButton button = new JButton("New Game");
-        newGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        btnpanel.add(button);
-        newGame.add(newPanel);
-        newGame.add(btnpanel, BorderLayout.SOUTH);
-        button.addActionListener(e ->
-		{
-            score = 0;
-            erased_lines = 0;
-            figure_state = 0;
-            figure = 0;
-            multiplier = 0;
-            speed_multiplier = 0;
-            exit = false;
-            newGame.setVisible(false);
-		});
-        newGame.setVisible(true);
+        if (games == 1) {
+            newGame.setSize(600, 200);
+            JPanel btnpanel = new JPanel();
+            JPanel newPanel = new New_panel();
+            JButton button = new JButton("New Game");
+            newGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            btnpanel.add(button);
+            newGame.add(newPanel);
+            newGame.add(btnpanel, BorderLayout.SOUTH);
+            button.addActionListener(e ->
+            {
+                score = 0;
+                erased_lines = 0;
+                figure_state = 0;
+                figure = 0;
+                multiplier = 0;
+                speed_multiplier = 0;
+                exit = false;
+                newGame.setVisible(false);
+            });
+            newGame.setVisible(true);
+        } else {
+            newGame.setVisible(true);
+        }
+        
     }
      
     @Override
@@ -580,7 +587,7 @@ public class Tetris extends JFrame implements KeyListener{
                 }
                 
                 try {
-                    Thread.sleep(600 - speed_multiplier * 70);
+                    Thread.sleep(1000 - speed_multiplier * 70);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
