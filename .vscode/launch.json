@@ -9,6 +9,13 @@
             "name": "Launch Tetris",
             "request": "launch",
             "mainClass": "Tetris",
+            "projectName": "java6_318ce511"
+        },
+        {
+            "type": "java",
+            "name": "Launch Tetris",
+            "request": "launch",
+            "mainClass": "Tetris",
             "projectName": "java6_b64e0b15"
         }
     ]
