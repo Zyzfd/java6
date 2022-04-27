@@ -483,7 +483,7 @@ public class Tetris extends JFrame implements KeyListener{
         repaint();
     }
 
-    public static void new_game() {
+    public void new_game() {
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 10; j++) {
                 for (int k = 0; k < 2; k++) {
@@ -505,13 +505,13 @@ public class Tetris extends JFrame implements KeyListener{
         to_node += erased_lines + " стертых линий\n";
         stack.push(new Node(to_node));
 
-        String out = stack.peek().toString();
+        String out = stack.lastElement().toString();
         System.out.print(out + " |\n |\n\\ /\n");
         games++;
         new_game_win();
     }
 
-    public static void new_game_win() {
+    public void new_game_win() {
         if (games == 1) {
             newGame.setSize(600, 200);
             JPanel btnpanel = new JPanel();
@@ -584,6 +584,8 @@ public class Tetris extends JFrame implements KeyListener{
 
                 if (!exit) {
                     game(0);
+                } else {
+                    new_game();
                 }
                 
                 try {
@@ -686,7 +688,6 @@ public class Tetris extends JFrame implements KeyListener{
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                new_game();
             }
         }
     }
@@ -697,7 +698,7 @@ public class Tetris extends JFrame implements KeyListener{
             super.paintComponent(g);
             g.setColor(Color.RED);
             g.setFont(new Font("Roboto", Font.BOLD, 55));
-            String out = stack.peek().toString();
+            String out = stack.lastElement().toString();
             int x = 60;
             int y = 70;
             for (String retval : out.split("\n")) {
